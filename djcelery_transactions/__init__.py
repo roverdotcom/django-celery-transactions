@@ -8,8 +8,7 @@ import django
 from django.conf import settings
 from django.db import transaction
 
-if django.VERSION >= (1, 6):
-    from django.db.transaction import get_connection, atomic
+from django.db.transaction import get_connection, atomic
 
 import djcelery_transactions.transaction_signals
 
@@ -105,13 +104,7 @@ def _send_tasks(**kwargs):
     queue = _get_task_queue()
     while queue:
         tsk, args, kwargs = queue.pop(0)
-        if django.VERSION < (1, 6):
-            apply_async_orig = tsk.original_apply_async
-            if celery_eager:
-                apply_async_orig = transaction.autocommit()(apply_async_orig)
-            apply_async_orig(*args, **kwargs)
-        else:
-            tsk.original_apply_async(*args, **kwargs)
+        tsk.original_apply_async(*args, **kwargs)
 
 
 # A replacement decorator.
